@@ -1,0 +1,50 @@
+{
+  "Comment": "Facereg state machine",
+  "StartAt": "LogRequest",
+  "States": {
+    "LogRequest" :{
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Parameters": {
+        "TableName": "requests",
+        "Item": {
+          "name": {
+            "S.$": "$.name"
+          },
+          "team": {
+            "S.$": "$.team"
+          },
+          "timestamp": {
+            "S.$": "not-implemented"
+          }
+        }
+      },
+      "Next": "Classify",
+      "ResultPath":"$.DynamoDB"
+    },
+    "Classify": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.team",
+          "StringEquals": "good-guys",
+          "Next": "GoodGuy"
+        },
+        {
+          "Variable": "$.team",
+          "StringEquals": "bad-guys",
+          "Next": "BadGuy"
+        }
+      ]
+    },
+    "GoodGuy": {
+      "Type": "Pass",
+      "End": true
+    },
+    "BadGuy": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:Foo",
+      "End": true
+    }
+  }
+}
